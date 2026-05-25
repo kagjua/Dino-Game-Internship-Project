@@ -15,15 +15,17 @@ running = True  # Pygame main loop, kills pygame when False
 # Game state variables
 is_playing = True  # Whether in game or in menu
 GROUND_Y = 300  # The Y-coordinate of the ground level
-JUMP_GRAVITY_START_SPEED = -20  # The speed at which the player jumps
+JUMP_GRAVITY_START_SPEED = -18  # The speed at which the player jumps
 players_gravity_speed = 0  # The current speed at which the player falls
 
 # Load level assets
-SKY_SURF = pygame.image.load("graphics/level/sky.png").convert()
+SKY_SURF = pygame.image.load("graphics/level/skylar.png").convert()
 GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
+# END_SCR = pygame.image.load("graphics")
 game_font = pygame.font.Font(pygame.font.get_default_font(), 50)
-score_surf = game_font.render("SCORE?", False, "Black")
-score_rect = score_surf.get_rect(center=(400, 50))
+score_surf = game_font.render("SCORE:", False, "Black")
+score_rect = score_surf.get_rect(topright=(225, 20))
+
 
 # Load sprite assets
 player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
@@ -49,6 +51,7 @@ while running:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
         else:
             # When player wants to play again by pressing SPACE
+
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
                 egg_rect.left = 800
