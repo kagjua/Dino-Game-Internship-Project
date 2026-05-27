@@ -5,12 +5,23 @@ Made by intern: @bassemfarid, no one or nothing else. 🤖
 """
 
 import pygame
+#import random
+
+def game_score():
+    score = int(pygame.time.get_ticks()/100) - start
+    score_surf = game_font.render(f"Score: {score}", False, "Black")
+    score_rect = score_surf.get_rect(topright=(175, 20))
+    pygame.draw.rect(screen, "#87ceeb", score_rect)
+    pygame.draw.rect(screen, "#87ceeb", score_rect, 10)
+    screen.blit(score_surf, score_rect)
+
 
 # Initialize Pygame and create a window
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
 clock = pygame.time.Clock()
 running = True  # Pygame main loop, kills pygame when False
+start = int(pygame.time.get_ticks()/100)
 
 # Game state variables
 is_playing = True  # Whether in game or in menu
@@ -21,14 +32,15 @@ players_gravity_speed = 0  # The current speed at which the player falls
 # Load level assets
 SKY_SURF = pygame.image.load("graphics/level/skylar.png").convert()
 GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
+#ground_x_pos = 
 # END_SCR = pygame.image.load("graphics")
-game_font = pygame.font.Font(pygame.font.get_default_font(), 50)
-score_surf = game_font.render("SCORE:", False, "Black")
-score_rect = score_surf.get_rect(topright=(225, 20))
+game_font = pygame.font.Font(pygame.font.get_default_font(), 35)
+end_surf = game_font.render("GAME OVER", False, "Black")
+end_rect = end_surf.get_rect(center=(400, 200))
 
 
 # Load sprite assets
-player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+player_surf = pygame.image.load("graphics/player/golshi.png").convert_alpha()
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
@@ -55,6 +67,7 @@ while running:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
                 egg_rect.left = 800
+                start = int(pygame.time.get_ticks()/100)
 
     if is_playing:
         screen.fill("purple")  # Wipe the screen
@@ -62,9 +75,6 @@ while running:
         # Blit the level assets
         screen.blit(SKY_SURF, (0, 0))
         screen.blit(GROUND_SURF, (0, GROUND_Y))
-        pygame.draw.rect(screen, "#c0e8ec", score_rect)
-        pygame.draw.rect(screen, "#c0e8ec", score_rect, 10)
-        screen.blit(score_surf, score_rect)
 
         # Adjust egg's horizontal location then blit it
         egg_rect.x -= 5
@@ -78,14 +88,17 @@ while running:
         if player_rect.bottom > GROUND_Y:
             player_rect.bottom = GROUND_Y
         screen.blit(player_surf, player_rect)
+        game_score()
 
         # When player collides with enemy, game ends
         if egg_rect.colliderect(player_rect):
             is_playing = False
 
+
     # When game is over, display game over message
     else:
-        screen.fill("black")
+        screen.fill("red")
+        screen.blit(end_surf,end_rect)
 
     # flip the display to put your work on screen
     pygame.display.flip()
