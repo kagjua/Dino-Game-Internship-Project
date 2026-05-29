@@ -8,12 +8,20 @@ import pygame
 #import random
 
 def game_score():
-    score = int(pygame.time.get_ticks()/100) - start
+
     score_surf = game_font.render(f"Score: {score}", False, "Black")
-    score_rect = score_surf.get_rect(topright=(175, 20))
+    score_rect = score_surf.get_rect(topleft=(25, 20))
     pygame.draw.rect(screen, "#87ceeb", score_rect)
     pygame.draw.rect(screen, "#87ceeb", score_rect, 10)
     screen.blit(score_surf, score_rect)
+
+def egg_anim():
+    #egg walking animations
+    global egg_surf, egg_index
+    egg_index += difficulty/25
+    if egg_index >= len(egg_walk):
+        egg_index = 0
+    egg_surf = egg_walk[int(egg_index)]
 
 
 # Initialize Pygame and create a window
@@ -21,13 +29,18 @@ pygame.init()
 screen = pygame.display.set_mode((800, 400))
 clock = pygame.time.Clock()
 running = True  # Pygame main loop, kills pygame when False
-start = int(pygame.time.get_ticks()/100)
+score_mult = 50 #decrease/increase to increase/decrese score speed
+start = int(pygame.time.get_ticks()/score_mult)
+difficulty = 1
+
 
 # Game state variables
 is_playing = True  # Whether in game or in menu
 GROUND_Y = 300  # The Y-coordinate of the ground level
-JUMP_GRAVITY_START_SPEED = -18  # The speed at which the player jumps
+grav = -15
+JUMP_GRAVITY_START_SPEED = -17  # The speed at which the player jumps
 players_gravity_speed = 0  # The current speed at which the player falls
+difficulty = 1
 
 # Load level assets
 SKY_SURF = pygame.image.load("graphics/level/skylar.png").convert()
@@ -42,7 +55,13 @@ end_rect = end_surf.get_rect(center=(400, 200))
 # Load sprite assets
 player_surf = pygame.image.load("graphics/player/golshi.png").convert_alpha()
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
-egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
+carrot_surf = pygame.image.load("graphics/carrot.png").convert_alpha
+carrot_rect = player_surf.get_rect(bottomleft = (400, GROUND_Y))
+egg_walk_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
+egg_walk_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
+egg_walk = [egg_walk_1, egg_walk_2]
+egg_index = 0
+egg_surf = egg_walk[egg_index]
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
 
 
@@ -61,13 +80,14 @@ while running:
                 or event.type == pygame.MOUSEBUTTONDOWN
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
+
         else:
             # When player wants to play again by pressing SPACE
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
                 egg_rect.left = 800
-                start = int(pygame.time.get_ticks()/100)
+                start = int(pygame.time.get_ticks()/score_mult)
 
     if is_playing:
         screen.fill("purple")  # Wipe the screen
@@ -76,10 +96,18 @@ while running:
         screen.blit(SKY_SURF, (0, 0))
         screen.blit(GROUND_SURF, (0, GROUND_Y))
 
+
+        #adjust enemy speed over time
+        
+        score = int(pygame.time.get_ticks()/score_mult) - start 
+        if score % 150 == 0:
+            difficulty += .1
+
         # Adjust egg's horizontal location then blit it
-        egg_rect.x -= 5
+        egg_rect.x -= 5*difficulty
         if egg_rect.right <= 0:
             egg_rect.left = 800
+        egg_anim()
         screen.blit(egg_surf, egg_rect)
 
         # Adjust player's vertical location then blit it
@@ -90,9 +118,16 @@ while running:
         screen.blit(player_surf, player_rect)
         game_score()
 
+        # carrot blitting
+        screen.blit(carrot_surf, carrot_rect)
+
         # When player collides with enemy, game ends
         if egg_rect.colliderect(player_rect):
             is_playing = False
+            difficulty = 1 
+
+        if carrot_rect.collidedict(player_rect):
+
 
 
     # When game is over, display game over message
