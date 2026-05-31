@@ -23,6 +23,17 @@ def egg_anim():
         egg_index = 0
     egg_surf = egg_walk[int(egg_index)]
 
+def player_anim():
+    #all player animations
+    global player_surf, player_index
+    if player_rect.bottom < GROUND_Y:
+        player_surf = player_jump
+    else:
+        player_index += 0.1
+        if player_index >= len(player_walk):
+            player_index = 0
+        player_surf = player_walk[int(player_index)]
+
 
 # Initialize Pygame and create a window
 pygame.init()
@@ -43,7 +54,7 @@ players_gravity_speed = 0  # The current speed at which the player falls
 difficulty = 1
 
 # Load level assets
-SKY_SURF = pygame.image.load("graphics/level/skylar.png").convert()
+SKY_SURF = pygame.image.load("graphics/level/bg.png").convert()
 GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
 #ground_x_pos = 
 # END_SCR = pygame.image.load("graphics")
@@ -53,16 +64,26 @@ end_rect = end_surf.get_rect(center=(400, 200))
 
 
 # Load sprite assets
-player_surf = pygame.image.load("graphics/player/golshi.png").convert_alpha()
+player_walk_1 = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+player_walk_2 = pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
+player_walk = [player_walk_1, player_walk_2]
+player_index = 0
+player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
+player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
-carrot_surf = pygame.image.load("graphics/carrot.png").convert_alpha
+
+carrot_surf = pygame.image.load("graphics/ingame/carrot.png").convert_alpha()
 carrot_rect = player_surf.get_rect(bottomleft = (400, GROUND_Y))
-egg_walk_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
-egg_walk_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
+
+egg_walk_1 = pygame.image.load("graphics/ingame/egg_1.png").convert_alpha()
+egg_walk_2 = pygame.image.load("graphics/ingame/egg_2.png").convert_alpha()
 egg_walk = [egg_walk_1, egg_walk_2]
 egg_index = 0
 egg_surf = egg_walk[egg_index]
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
+
+#title screen assets
+title_surf = pygame.image.load("graphics/level/title.png").convert_alpha()
 
 
 while running:
@@ -115,6 +136,7 @@ while running:
         player_rect.y += players_gravity_speed
         if player_rect.bottom > GROUND_Y:
             player_rect.bottom = GROUND_Y
+        player_anim()
         screen.blit(player_surf, player_rect)
         game_score()
 
@@ -126,7 +148,7 @@ while running:
             is_playing = False
             difficulty = 1 
 
-        if carrot_rect.collidedict(player_rect):
+        #if carrot_rect.collidedict(player_rect):
 
 
 
