@@ -8,7 +8,7 @@ import pygame
 #import random
 
 def game_score():
-
+    #show game score
     score_surf = game_font.render(f"Score: {score}", False, "Black")
     score_rect = score_surf.get_rect(topleft=(25, 20))
     pygame.draw.rect(screen, "#87ceeb", score_rect)
@@ -29,7 +29,7 @@ def player_anim():
     if player_rect.bottom < GROUND_Y:
         player_surf = player_jump
     else:
-        player_index += 0.1
+        player_index += 0.25
         if player_index >= len(player_walk):
             player_index = 0
         player_surf = player_walk[int(player_index)]
@@ -66,7 +66,8 @@ end_rect = end_surf.get_rect(center=(400, 200))
 # Load sprite assets
 player_walk_1 = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
 player_walk_2 = pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
-player_walk = [player_walk_1, player_walk_2]
+player_walk_3 = pygame.image.load("graphics/player/player_walk_3.png").convert_alpha()
+player_walk = [player_walk_1, player_walk_2, player_walk_3]
 player_index = 0
 player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
 player_surf = player_walk[player_index]
@@ -85,6 +86,8 @@ egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
 #title screen assets
 title_surf = pygame.image.load("graphics/level/title.png").convert_alpha()
 
+
+enemy_timer = pygame.USEREVENT + 1
 
 while running:
     # Poll for events
