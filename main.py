@@ -5,7 +5,7 @@ Made by intern: @bassemfarid, no one or nothing else. 🤖
 """
 
 import pygame
-#import random
+from random import randint
 
 def game_score():
     #show game score
@@ -33,6 +33,16 @@ def player_anim():
         if player_index >= len(player_walk):
             player_index = 0
         player_surf = player_walk[int(player_index)]
+
+def sprite_movement(sprite_list):
+        if sprite_list:
+            for sprite_rect in sprite_list:
+                sprite_rect.x -= 5*difficulty
+                screen.blit(egg_surf, sprite_rect)
+            sprite_list [sprite for sprite in sprite_list if obstacle.x > -50]
+            return sprite_list
+        else:
+            return []
 
 
 # Initialize Pygame and create a window
@@ -73,6 +83,7 @@ player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
+#non player sprites
 carrot_surf = pygame.image.load("graphics/ingame/carrot.png").convert_alpha()
 carrot_rect = player_surf.get_rect(bottomleft = (400, GROUND_Y))
 
@@ -81,13 +92,15 @@ egg_walk_2 = pygame.image.load("graphics/ingame/egg_2.png").convert_alpha()
 egg_walk = [egg_walk_1, egg_walk_2]
 egg_index = 0
 egg_surf = egg_walk[egg_index]
-egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
+
+sprite_rect_list = []
 
 #title screen assets
 title_surf = pygame.image.load("graphics/level/title.png").convert_alpha()
 
 
 enemy_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(enemy_timer, 1500)
 
 while running:
     # Poll for events
@@ -104,13 +117,17 @@ while running:
                 or event.type == pygame.MOUSEBUTTONDOWN
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
-
+            
+            if event.type == enemy_timer and is_playing:
+                if randint(0,2):
+                    sprite_rect_list.append(egg_surf.get_rect(bottomright = (randint(800,1000), 300)))
+                else:
+                    sprite_rect_list.append(egg_surf.get_rect(bottomright = (randint(800,1000), 210)))
         else:
             # When player wants to play again by pressing SPACE
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
-                egg_rect.left = 800
                 start = int(pygame.time.get_ticks()/score_mult)
 
     if is_playing:
@@ -127,12 +144,8 @@ while running:
         if score % 150 == 0:
             difficulty += .1
 
-        # Adjust egg's horizontal location then blit it
-        egg_rect.x -= 5*difficulty
-        if egg_rect.right <= 0:
-            egg_rect.left = 800
-        egg_anim()
-        screen.blit(egg_surf, egg_rect)
+        # Adjust sprite horizontal location then blit it
+        sprite_rect_list = sprite_movement(sprite_rect_list)
 
         # Adjust player's vertical location then blit it
         players_gravity_speed += 1
@@ -147,9 +160,9 @@ while running:
         screen.blit(carrot_surf, carrot_rect)
 
         # When player collides with enemy, game ends
-        if egg_rect.colliderect(player_rect):
-            is_playing = False
-            difficulty = 1 
+        #if egg_rect.colliderect(player_rect):
+            #is_playing = False
+            #difficulty = 1 
 
         #if carrot_rect.collidedict(player_rect):
 
