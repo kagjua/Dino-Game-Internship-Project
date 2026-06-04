@@ -5,7 +5,7 @@ Made by intern: @bassemfarid, no one or nothing else. 🤖
 """
 
 import pygame
-from random import randint
+import random
 
 def game_score():
     #show game score
@@ -38,8 +38,11 @@ def sprite_movement(sprite_list):
         if sprite_list:
             for sprite_rect in sprite_list:
                 sprite_rect.x -= 5*difficulty
-                screen.blit(egg_surf, sprite_rect)
-            sprite_list [sprite for sprite in sprite_list if obstacle.x > -50]
+                if sprite_rect.bottom == 300:
+                    screen.blit(egg_surf, sprite_rect)
+                elif sprite_rect.bottom == 210:
+                    screen.blit(carrot_surf, sprite_rect)
+            sprite_list = [obstacle for obstacle in sprite_list if obstacle.x > -50]
             return sprite_list
         else:
             return []
@@ -119,10 +122,10 @@ while running:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
             
             if event.type == enemy_timer and is_playing:
-                if randint(0,2):
-                    sprite_rect_list.append(egg_surf.get_rect(bottomright = (randint(800,1000), 300)))
+                if random.randint(0,2):
+                    sprite_rect_list.append(egg_surf.get_rect(bottomright = (random.randint(800,1000), 300)))
                 else:
-                    sprite_rect_list.append(egg_surf.get_rect(bottomright = (randint(800,1000), 210)))
+                    sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 210)))
         else:
             # When player wants to play again by pressing SPACE
 
