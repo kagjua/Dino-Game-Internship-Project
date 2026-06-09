@@ -6,6 +6,7 @@ Made by intern: @bassemfarid, no one or nothing else. 🤖
 
 import pygame
 import random
+import math
 
 def game_score():
     #show game score
@@ -29,7 +30,7 @@ def player_anim():
 def sprite_movement(sprite_list):
         if sprite_list:
             for sprite_rect in sprite_list:
-                sprite_rect.x -= 5*difficulty
+                sprite_rect.x -= int(difficulty*5)
                 if sprite_rect.bottom == 300:
                     screen.blit(fence_surf, sprite_rect)
                 elif sprite_rect.bottom == 210:
@@ -48,12 +49,13 @@ def collisions(player, sprites):
 
 # Initialize Pygame and create a window
 pygame.init()
-screen = pygame.display.set_mode((800, 400))
+frame_width = 800
+frame_height = 400
+screen = pygame.display.set_mode((frame_width, frame_height))
 clock = pygame.time.Clock()
 running = True  # Pygame main loop, kills pygame when False
 score_mult = 50 #decrease/increase to increase/decrese score speed
 start = int(pygame.time.get_ticks()/score_mult)
-difficulty = 1
 
 
 # Game state variables
@@ -64,15 +66,19 @@ JUMP_GRAVITY_START_SPEED = -17  # The speed at which the player jumps
 players_gravity_speed = 0  # The current speed at which the player falls
 difficulty = 1
 
+
 # Load level assets
 SKY_SURF = pygame.image.load("Dino-Game-Internship-Project/graphics/level/bg.png").convert()
-GROUND_SURF = pygame.image.load("Dino-Game-Internship-Project\graphics\level\ground.png").convert()
+tiles = math.ceil(frame_width/ SKY_SURF.get_width()) + 1
+GROUND_SURF = pygame.image.load("Dino-Game-Internship-Project/graphics/level/ground.png").convert()
 #ground_x_pos = 
 # END_SCR = pygame.image.load("graphics")
 game_font = pygame.font.Font(pygame.font.get_default_font(), 35)
 end_surf = game_font.render("GAME OVER", False, "Black")
 end_rect = end_surf.get_rect(center=(400, 200))
 
+enemy_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(enemy_timer, 1500-difficulty*20)
 
 # Load sprite assets
 player_walk_1 = pygame.image.load("Dino-Game-Internship-Project/graphics/player/player_walk_1.png").convert_alpha()
@@ -90,17 +96,11 @@ carrot_surf = pygame.transform.rotozoom(carrot_surf,270,1)
 
 fence_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/fence.png").convert_alpha()
 
-
 sprite_rect_list = []
-
-
 
 #title screen assets
 title_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/level/title.png").convert_alpha()
 
-
-enemy_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(enemy_timer, 1500)
 
 while running:
     # Poll for events
@@ -131,10 +131,10 @@ while running:
                 start = int(pygame.time.get_ticks()/score_mult)
 
     if is_playing:
-        screen.fill("purple")  # Wipe the screen
-
         # Blit the level assets
-        screen.blit(SKY_SURF, (0, 0))
+        SKY_SURF.scroll(-1, 0 , pygame.SCROLL_REPEAT)
+        GROUND_SURF.scroll(int(difficulty*-5),0,pygame.SCROLL_REPEAT)
+        screen.blit(SKY_SURF)
         screen.blit(GROUND_SURF, (0, GROUND_Y))
 
         #collisions
@@ -142,8 +142,9 @@ while running:
         #adjust enemy speed over time
         
         score = int(pygame.time.get_ticks()/score_mult) - start 
-        if score % 150 == 0:
-            difficulty += .1
+        if score % 100 == 0:
+            difficulty += 0.05
+
 
         # Adjust sprite horizontal location then blit it
         sprite_rect_list = sprite_movement(sprite_rect_list)
