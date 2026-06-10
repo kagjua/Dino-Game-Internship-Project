@@ -41,10 +41,18 @@ def sprite_movement(sprite_list):
             return []
         
 def collisions(player, sprites):
+    global health, last_hit_time
+    current_time = pygame.time.get_ticks()
+    if current_time - last_hit_time < i_frames:
+        return True
     if sprites:
         for sprite_rect in sprites:
             if player.colliderect(sprite_rect):
-                return False
+                health -= 1
+                last_hit_time = current_time
+                if health <= 0:
+                    return False
+                return True
     return True
 
 # Initialize Pygame and create a window
@@ -64,7 +72,10 @@ GROUND_Y = 300  # The Y-coordinate of the ground level
 JUMP_GRAVITY_START_SPEED = -17  # The speed at which the player jumps
 players_gravity_speed = 0  # The current speed at which the player falls
 difficulty = 1
-speed = -(difficulty*6) #change multiplier to change starting speed
+speed = -(difficulty*6) # Change multiplier to change starting speed
+health = 3 # Set health
+i_frames = 1000
+last_hit_time = -i_frames
 
 
 # Load level assets
@@ -77,9 +88,9 @@ end_surf = game_font.render("GAME OVER", False, "Black")
 end_rect = end_surf.get_rect(center=(400, 200))
 
 enemy_timer = pygame.USEREVENT + 1
-enemy_spawn_interval_max = 1500
-enemy_spawn_interval = int(random.randint(1000, enemy_spawn_interval_max))
-enemy_spawn_interval_step = -50
+enemy_spawn_max = 2000
+enemy_spawn = int(random.randint(1500, enemy_spawn_max))
+enemy_spawn_interval_step = -25
 
                       
 
@@ -93,12 +104,10 @@ player_jump = pygame.image.load("Dino-Game-Internship-Project/graphics/player/pl
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
-#non player sprites
+#enemy sprites
 carrot_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/carrot.png").convert_alpha()
 carrot_surf = pygame.transform.rotozoom(carrot_surf,270,1)
-
 fence_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/fence.png").convert_alpha()
-
 sprite_rect_list = []
 
 #title screen assets
@@ -114,23 +123,16 @@ while running:
 
         elif is_playing:
             # When player wants to jump by pressing SPACE
-            if (
-                event.type == pygame.KEYDOWN
-                and event.key == pygame.K_SPACE
-                or event.type == pygame.MOUSEBUTTONDOWN
-            ) and player_rect.bottom >= GROUND_Y:
-                players_gravity_speed = JUMP_GRAVITY_START_SPEED
-
-
+            
             if event.type == enemy_timer and is_playing:
                 if random.randint(0,2):
                     sprite_rect_list.append(fence_surf.get_rect(bottomright = (random.randint(900,1000), 300)))
                 else:
                     sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
         else:
-            # When player wants to play again by pressing SPACE
+            # When player wants to play again by pressing SPACE or M1
 
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or event.type == pygame.MOUSEBUTTONDOWN:
                 is_playing = True
                 start = int(pygame.time.get_ticks()/score_mult)
 
@@ -143,15 +145,30 @@ while running:
 
         #collisions
         is_playing = collisions(player_rect, sprite_rect_list)
-        #adjust enemy speed over time
         
+        #player movement
+        keys = pygame.key.get_pressed()
+        if  (keys[pygame.K_SPACE]
+            or keys[pygame.K_w] 
+            or event.type == pygame.MOUSEBUTTONDOWN
+            ) and player_rect.bottom >= GROUND_Y:
+            players_gravity_speed = JUMP_GRAVITY_START_SPEED
+        if keys[pygame.K_d] and player_rect.right < frame_width:
+            player_rect.x += 5
+        if keys[pygame.K_a] and player_rect.left > 0:
+            player_rect.x -= 5
+        if keys[pygame.K_s]:
+            if player_rect.bottom > GROUND_Y:
+                JUMP_GRAVITY_START_SPEED = -10
+        
+        #adjust enemy speed over time
         score = int(pygame.time.get_ticks()/score_mult) - start 
         if score % 100 == 0:
-            difficulty += 0.05
+            difficulty += 0.025
             speed = -(difficulty*6)
             enemy_spawn_interval = min(
                 enemy_spawn_interval + enemy_spawn_interval_step,
-                enemy_spawn_interval_max,
+                enemy_spawn_max,
             )
             pygame.time.set_timer(enemy_timer, enemy_spawn_interval)
 
@@ -170,6 +187,7 @@ while running:
 
     # When game is over, display game over message
     else:
+        #reset gamestate
         screen.fill("red")
         screen.blit(end_surf,end_rect)
         sprite_rect_list.clear()
@@ -177,6 +195,9 @@ while running:
         difficulty = 1
         speed = -(difficulty*6)
         enemy_spawn_interval = 1500
+        player_rect.x = 25
+        health = 3
+        last_hit_time = -i_frames
 
     # flip the display to put your work on screen
     pygame.display.flip()
