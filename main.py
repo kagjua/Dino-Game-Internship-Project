@@ -11,8 +11,6 @@ def game_score():
     #show game score
     score_surf = game_font.render(f"Score: {score}", False, "Black")
     score_rect = score_surf.get_rect(topleft=(25, 20))
-    pygame.draw.rect(screen, "#87ceeb", score_rect)
-    pygame.draw.rect(screen, "#87ceeb", score_rect, 10)
     screen.blit(score_surf, score_rect)
 
 def draw_health_bar():
@@ -41,6 +39,7 @@ def player_anim():
         player_surf = player_walk[int(player_index)]
 
 def sprite_movement(sprite_list):
+    #spawns correct sprite based on y-level
         if sprite_list:
             for sprite_rect in sprite_list:
                 if sprite_rect.bottom == 300:
@@ -65,6 +64,7 @@ def collisions(player, sprites):
     if sprites:
         for sprite_rect in sprites:
             if player.colliderect(sprite_rect):
+                sprite_rect.left = -1000
                 if sprite_rect.bottom not in (300, 180):
                     health += 1
                     last_hit_time = current_time
@@ -98,8 +98,8 @@ difficulty = 1
 speed = -(difficulty*6) # Change multiplier to change starting speed
 health = 3 # Set health
 max_health = health
-i_frames = 1000
-last_hit_time = -i_frames
+i_frames = 500 # how long i-frames last
+last_hit_time = -i_frames # checks for when last hit
 
 
 # Load level assets
@@ -140,6 +140,7 @@ robo_fly = [robo_carrot_1, robo_carrot_2, robo_carrot_3]
 robo_index = 0
 robo_surf = robo_fly[robo_index]
 carrot_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/carrot.png").convert_alpha()
+carrot_surf = pygame.transform.rotate(carrot_surf, 270)
 fence_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/fence.png").convert_alpha()
 sprite_rect_list = []
 
@@ -147,6 +148,7 @@ sprite_rect_list = []
 title_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/level/title.png").convert_alpha()
 title_rect = title_surf.get_rect(center=(400,200))
 
+#set robot carrot event
 robo_animation_timer = pygame.USEREVENT + 3
 pygame.time.set_timer(robo_animation_timer, 500)
 
@@ -165,20 +167,20 @@ while running:
                 else:
                     sprite_rect_list.append(robo_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
 
-            if event.type == carrot_timer and health < max_health and random.randint(1,4) == 1:
-                sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 250)))
+            if event.type == carrot_timer and health < max_health and random.randint(1,5) == 1:
+                sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 181)))
                     
+            #robot carrot animation time
             if event.type == robo_animation_timer:
                 if robo_index < 2:
                     robo_index += 1
                 else:
                     robo_index = 0
                 robo_surf = robo_fly[robo_index]
-                robo_surf = pygame.transform.rotozoom(robo_surf, 270, 1.)
+                robo_surf = pygame.transform.rotate(robo_surf, 270)
                 
         else:
             # When player wants to play again by pressing SPACE or M1
-
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or event.type == pygame.MOUSEBUTTONDOWN:
                 is_playing = True
                 start = int(pygame.time.get_ticks()/score_mult)
@@ -210,7 +212,7 @@ while running:
         
         #adjust enemy speed over time
         score = int(pygame.time.get_ticks()/score_mult) - start 
-        if score % 100 == 0:
+        if score % 100 == 0 and score <= 1300:
             difficulty += 0.025
             speed = -(difficulty*6)
             enemy_spawn_rate = min(
@@ -234,7 +236,7 @@ while running:
         draw_health_bar()
 
     else:
-        #blit title screen, reset game state
+        #blit title screen
         high_score = max(high_score, score)
         screen.fill("black")
         screen.blit(title_surf, title_rect)
@@ -245,6 +247,7 @@ while running:
         play_again_rect = play_again_surf.get_rect(center=(400, 350))
         screen.blit(play_again_surf, play_again_rect)
     
+        #reset game state
         sprite_rect_list.clear()
         player_rect.bottom = GROUND_Y
         difficulty = 1
