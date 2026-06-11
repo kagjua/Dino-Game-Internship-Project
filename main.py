@@ -49,6 +49,9 @@ def sprite_movement(sprite_list):
                 elif sprite_rect.bottom == 180:
                     screen.blit(robo_surf, sprite_rect)
                     sprite_rect.x += int(speed)
+                else:
+                    screen.blit(carrot_surf, sprite_rect)
+                    sprite_rect.x += int(speed)
             sprite_list = [obstacle for obstacle in sprite_list if obstacle.x > -50]
             return sprite_list
         else:
@@ -62,11 +65,15 @@ def collisions(player, sprites):
     if sprites:
         for sprite_rect in sprites:
             if player.colliderect(sprite_rect):
-                health -= 1
-                last_hit_time = current_time
-                if health <= 0:
-                    return False
-                return True
+                if sprite_rect.bottom not in (300, 180):
+                    health += 1
+                    last_hit_time = current_time
+                else:
+                    health -= 1
+                    last_hit_time = current_time
+                    if health <= 0:
+                        return False
+                    return True
     return True
 
 # Initialize Pygame and create a window
@@ -102,10 +109,18 @@ GROUND_SURF = pygame.image.load("Dino-Game-Internship-Project/graphics/level/gro
 # END_SCR = pygame.image.load("graphics")
 game_font = pygame.font.Font(pygame.font.get_default_font(), 35)
 
+#sprite spawn timers
 enemy_timer = pygame.USEREVENT + 1
 enemy_spawn_max = 2000
 enemy_spawn = int(random.randint(1500, enemy_spawn_max))
-enemy_spawn_interval_step = -25
+enemy_spawn_rate_step = -25
+enemy_spawn_rate = enemy_spawn
+pygame.time.set_timer(enemy_timer, enemy_spawn_rate)
+carrot_timer = pygame.USEREVENT + 2
+carrot_spawn_min = 4000
+carrot_spawn_max = 8000
+carrot_spawn_rate = random.randint(carrot_spawn_min, carrot_spawn_max)
+pygame.time.set_timer(carrot_timer, carrot_spawn_rate)
 
 # Load sprite assets
 player_walk_1 = pygame.image.load("Dino-Game-Internship-Project/graphics/player/player_walk_1.png").convert_alpha()
@@ -130,9 +145,9 @@ sprite_rect_list = []
 
 #title screen assets
 title_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/level/title.png").convert_alpha()
-title_rect = title_surf.get_rect(center=(400,100))
+title_rect = title_surf.get_rect(center=(400,200))
 
-robo_animation_timer = pygame.USEREVENT + 2
+robo_animation_timer = pygame.USEREVENT + 3
 pygame.time.set_timer(robo_animation_timer, 500)
 
 while running:
@@ -149,8 +164,9 @@ while running:
                     sprite_rect_list.append(fence_surf.get_rect(bottomright = (random.randint(900,1000), 300)))
                 else:
                     sprite_rect_list.append(robo_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
-                if health < 3 and random.randint(0,20) == 1:
-                    sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), random.randint(200,300))))
+
+            if event.type == carrot_timer and health < max_health and random.randint(1,4) == 1:
+                sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 250)))
                     
             if event.type == robo_animation_timer:
                 if robo_index < 2:
@@ -197,11 +213,11 @@ while running:
         if score % 100 == 0:
             difficulty += 0.025
             speed = -(difficulty*6)
-            enemy_spawn_interval = min(
-                enemy_spawn_interval + enemy_spawn_interval_step,
+            enemy_spawn_rate = min(
+                enemy_spawn_rate + enemy_spawn_rate_step,
                 enemy_spawn_max,
             )
-            pygame.time.set_timer(enemy_timer, enemy_spawn_interval)
+            pygame.time.set_timer(enemy_timer, enemy_spawn_rate)
 
 
         # Adjust sprite horizontal location then blit it
@@ -217,21 +233,25 @@ while running:
         game_score()
         draw_health_bar()
 
-    # When game is over, display game over message
     else:
-        #reset gamestate
+        #blit title screen, reset game state
         high_score = max(high_score, score)
         screen.fill("black")
         screen.blit(title_surf, title_rect)
-        high_score_surf = game_font.render(f"High Score: {high_score}", False, "White")
-        high_score_rect = high_score_surf.get_rect(center=(400, 250))
-
+        high_score_surf = game_font.render(f"High Score: {high_score}  Latest Score: {score}", False, "White")
+        high_score_rect = high_score_surf.get_rect(center=(400, 50))
         screen.blit(high_score_surf, high_score_rect)
+        play_again_surf = game_font.render("Press W / Space to play", False, "White")
+        play_again_rect = play_again_surf.get_rect(center=(400, 350))
+        screen.blit(play_again_surf, play_again_rect)
+    
         sprite_rect_list.clear()
         player_rect.bottom = GROUND_Y
         difficulty = 1
         speed = -(difficulty*6)
-        enemy_spawn_interval = 1500
+        enemy_spawn_rate = 1500
+        pygame.time.set_timer(enemy_timer, enemy_spawn_rate)
+        pygame.time.set_timer(carrot_timer, carrot_spawn_rate)
         player_rect.x = 25
         health = 3
         last_hit_time = -i_frames
