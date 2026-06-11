@@ -15,6 +15,20 @@ def game_score():
     pygame.draw.rect(screen, "#87ceeb", score_rect, 10)
     screen.blit(score_surf, score_rect)
 
+def draw_health_bar():
+    #show player health as a shrinking bar
+    bar_width = 200
+    bar_height = 30
+    bar_x = 575
+    bar_y = 20
+    health_ratio = max(health, 0) / max_health
+    current_width = int(bar_width * health_ratio)
+    background_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+    current_rect = pygame.Rect(bar_x, bar_y, current_width, bar_height)
+    pygame.draw.rect(screen, "darkred", background_rect)
+    pygame.draw.rect(screen, "limegreen", current_rect)
+    pygame.draw.rect(screen, "black", background_rect, 2)
+
 def player_anim():
     #all player animations
     global player_surf, player_index
@@ -33,7 +47,7 @@ def sprite_movement(sprite_list):
                     screen.blit(fence_surf, sprite_rect)
                     sprite_rect.x += int(speed)
                 elif sprite_rect.bottom == 180:
-                    screen.blit(carrot_surf, sprite_rect)
+                    screen.blit(robo_surf, sprite_rect)
                     sprite_rect.x += int(speed)
             sprite_list = [obstacle for obstacle in sprite_list if obstacle.x > -50]
             return sprite_list
@@ -64,6 +78,8 @@ clock = pygame.time.Clock()
 running = True  # Pygame main loop, kills pygame when False
 score_mult = 50 #decrease/increase to increase/decrese score speed
 start = int(pygame.time.get_ticks()/score_mult)
+high_score = 0
+score = 0
 
 
 # Game state variables
@@ -74,6 +90,7 @@ players_gravity_speed = 0  # The current speed at which the player falls
 difficulty = 1
 speed = -(difficulty*6) # Change multiplier to change starting speed
 health = 3 # Set health
+max_health = health
 i_frames = 1000
 last_hit_time = -i_frames
 
@@ -84,15 +101,11 @@ GROUND_SURF = pygame.image.load("Dino-Game-Internship-Project/graphics/level/gro
 #ground_x_pos = 
 # END_SCR = pygame.image.load("graphics")
 game_font = pygame.font.Font(pygame.font.get_default_font(), 35)
-end_surf = game_font.render("GAME OVER", False, "Black")
-end_rect = end_surf.get_rect(center=(400, 200))
 
 enemy_timer = pygame.USEREVENT + 1
 enemy_spawn_max = 2000
 enemy_spawn = int(random.randint(1500, enemy_spawn_max))
 enemy_spawn_interval_step = -25
-
-                      
 
 # Load sprite assets
 player_walk_1 = pygame.image.load("Dino-Game-Internship-Project/graphics/player/player_walk_1.png").convert_alpha()
@@ -105,14 +118,22 @@ player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
 #enemy sprites
+robo_carrot_1 = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/robo_carrot_1.png").convert_alpha()
+robo_carrot_2 = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/robo_carrot_2.png").convert_alpha()
+robo_carrot_3 = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/robo_carrot_3.png").convert_alpha()
+robo_fly = [robo_carrot_1, robo_carrot_2, robo_carrot_3]
+robo_index = 0
+robo_surf = robo_fly[robo_index]
 carrot_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/carrot.png").convert_alpha()
-carrot_surf = pygame.transform.rotozoom(carrot_surf,270,1)
 fence_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/fence.png").convert_alpha()
 sprite_rect_list = []
 
 #title screen assets
 title_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/level/title.png").convert_alpha()
+title_rect = title_surf.get_rect(center=(400,100))
 
+robo_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(robo_animation_timer, 500)
 
 while running:
     # Poll for events
@@ -122,13 +143,23 @@ while running:
             running = False
 
         elif is_playing:
-            # When player wants to jump by pressing SPACE
-            
-            if event.type == enemy_timer and is_playing:
+            #pick between enemies
+            if event.type == enemy_timer:
                 if random.randint(0,2):
                     sprite_rect_list.append(fence_surf.get_rect(bottomright = (random.randint(900,1000), 300)))
                 else:
-                    sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
+                    sprite_rect_list.append(robo_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
+                if health < 3 and random.randint(0,20) == 1:
+                    sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), random.randint(200,300))))
+                    
+            if event.type == robo_animation_timer:
+                if robo_index < 2:
+                    robo_index += 1
+                else:
+                    robo_index = 0
+                robo_surf = robo_fly[robo_index]
+                robo_surf = pygame.transform.rotozoom(robo_surf, 270, 1.)
+                
         else:
             # When player wants to play again by pressing SPACE or M1
 
@@ -184,12 +215,18 @@ while running:
         player_anim()
         screen.blit(player_surf, player_rect)
         game_score()
+        draw_health_bar()
 
     # When game is over, display game over message
     else:
         #reset gamestate
-        screen.fill("red")
-        screen.blit(end_surf,end_rect)
+        high_score = max(high_score, score)
+        screen.fill("black")
+        screen.blit(title_surf, title_rect)
+        high_score_surf = game_font.render(f"High Score: {high_score}", False, "White")
+        high_score_rect = high_score_surf.get_rect(center=(400, 250))
+
+        screen.blit(high_score_surf, high_score_rect)
         sprite_rect_list.clear()
         player_rect.bottom = GROUND_Y
         difficulty = 1
