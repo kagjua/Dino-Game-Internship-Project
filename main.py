@@ -7,6 +7,7 @@ Made by intern: @bassemfarid, no one or nothing else. 🤖
 import pygame
 import random
 
+global score
 def game_score():
     #show game score
     score_surf = game_font.render(f"Score: {score}", False, "Black")
@@ -48,6 +49,9 @@ def sprite_movement(sprite_list):
                 elif sprite_rect.bottom == 180:
                     screen.blit(robo_surf, sprite_rect)
                     sprite_rect.x += int(speed)
+                elif sprite_rect.bottom == 301:
+                    screen.blit(gold_surf, sprite_rect)
+                    sprite_rect.x += int(speed)
                 else:
                     screen.blit(carrot_surf, sprite_rect)
                     sprite_rect.x += int(speed)
@@ -57,7 +61,7 @@ def sprite_movement(sprite_list):
             return []
         
 def collisions(player, sprites):
-    global health, last_hit_time
+    global health, last_hit_time, gold_score
     current_time = pygame.time.get_ticks()
     if current_time - last_hit_time < i_frames:
         return True
@@ -65,8 +69,11 @@ def collisions(player, sprites):
         for sprite_rect in sprites:
             if player.colliderect(sprite_rect):
                 sprite_rect.left = -1000
-                if sprite_rect.bottom not in (300, 180):
+                if sprite_rect.bottom == 190:
                     health += 1
+                    last_hit_time = current_time
+                elif sprite_rect.bottom == 301:
+                    gold_score += 50
                     last_hit_time = current_time
                 else:
                     health -= 1
@@ -87,6 +94,8 @@ score_mult = 50 #decrease/increase to increase/decrese score speed
 start = int(pygame.time.get_ticks()/score_mult)
 high_score = 0
 score = 0
+gold_score = 0
+last_difficulty_milestone = 0  # Track the last 100-point threshold processed
 
 
 # Game state variables
@@ -141,7 +150,9 @@ robo_index = 0
 robo_surf = robo_fly[robo_index]
 carrot_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/carrot.png").convert_alpha()
 fence_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/fence.png").convert_alpha()
+gold_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/bar.png").convert_alpha()
 sprite_rect_list = []
+
 
 #title screen assets
 title_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/level/title.png").convert_alpha()
@@ -161,10 +172,13 @@ while running:
         elif is_playing:
             #pick between enemies
             if event.type == enemy_timer:
-                if random.randint(0,2):
+                spawner = random.randint(1,9)
+                if spawner <= 4:
                     sprite_rect_list.append(fence_surf.get_rect(bottomright = (random.randint(900,1000), 300)))
-                else:
+                elif spawner <= 8:
                     sprite_rect_list.append(robo_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
+                else:
+                    sprite_rect_list.append(gold_surf.get_rect(bottomright = (random.randint(800,1000), 301)))
 
             if event.type == carrot_timer and health < max_health and random.randint(1,5) == 1:
                 sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 190)))
@@ -210,8 +224,11 @@ while running:
                 JUMP_GRAVITY_START_SPEED = -10
         
         #adjust enemy speed over time
-        score = int(pygame.time.get_ticks()/score_mult) - start 
-        if score % 100 == 0 and score <= 1500:
+        time_score = int(pygame.time.get_ticks()/score_mult) - start 
+        score = time_score + gold_score
+        # Check if score has crossed a new 100-point milestone (catches jumps too)
+        current_milestone = (score // 100) * 100
+        if current_milestone > last_difficulty_milestone and score <= 1500:
             difficulty += 0.025
             speed = -(difficulty*6)
             enemy_spawn_rate = min(
@@ -219,6 +236,7 @@ while running:
                 enemy_spawn_max,
             )
             pygame.time.set_timer(enemy_timer, enemy_spawn_rate)
+            last_difficulty_milestone = current_milestone
 
 
         # Adjust sprite horizontal location then blit it
@@ -257,6 +275,8 @@ while running:
         player_rect.x = 25
         health = 3
         last_hit_time = -i_frames
+        gold_score = 0
+        last_difficulty_milestone = 0
 
     # flip the display to put your work on screen
     pygame.display.flip()
