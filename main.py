@@ -140,7 +140,6 @@ robo_fly = [robo_carrot_1, robo_carrot_2, robo_carrot_3]
 robo_index = 0
 robo_surf = robo_fly[robo_index]
 carrot_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/carrot.png").convert_alpha()
-carrot_surf = pygame.transform.rotate(carrot_surf, 270)
 fence_surf = pygame.image.load("Dino-Game-Internship-Project/graphics/ingame/fence.png").convert_alpha()
 sprite_rect_list = []
 
@@ -168,7 +167,7 @@ while running:
                     sprite_rect_list.append(robo_surf.get_rect(bottomright = (random.randint(800,1000), 180)))
 
             if event.type == carrot_timer and health < max_health and random.randint(1,5) == 1:
-                sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 181)))
+                sprite_rect_list.append(carrot_surf.get_rect(bottomright = (random.randint(800,1000), 190)))
                     
             #robot carrot animation time
             if event.type == robo_animation_timer:
@@ -212,7 +211,7 @@ while running:
         
         #adjust enemy speed over time
         score = int(pygame.time.get_ticks()/score_mult) - start 
-        if score % 100 == 0 and score <= 1300:
+        if score % 100 == 0 and score <= 1500:
             difficulty += 0.025
             speed = -(difficulty*6)
             enemy_spawn_rate = min(
@@ -243,7 +242,7 @@ while running:
         high_score_surf = game_font.render(f"High Score: {high_score}  Latest Score: {score}", False, "White")
         high_score_rect = high_score_surf.get_rect(center=(400, 50))
         screen.blit(high_score_surf, high_score_rect)
-        play_again_surf = game_font.render("Press W / Space to play", False, "White")
+        play_again_surf = game_font.render("Use WASD and Space to play", False, "White")
         play_again_rect = play_again_surf.get_rect(center=(400, 350))
         screen.blit(play_again_surf, play_again_rect)
     
