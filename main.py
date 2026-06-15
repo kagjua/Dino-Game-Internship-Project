@@ -122,7 +122,7 @@ game_font = pygame.font.Font(pygame.font.get_default_font(), 35)
 enemy_timer = pygame.USEREVENT + 1
 enemy_spawn_max = 2000
 enemy_spawn = int(random.randint(1500, enemy_spawn_max))
-enemy_spawn_rate_step = -25
+enemy_spawn_rate_step = -35
 enemy_spawn_rate = enemy_spawn
 pygame.time.set_timer(enemy_timer, enemy_spawn_rate)
 carrot_timer = pygame.USEREVENT + 2
@@ -227,9 +227,9 @@ while running:
         time_score = int(pygame.time.get_ticks()/score_mult) - start 
         score = time_score + gold_score
         # Check if score has crossed a new 100-point milestone (catches jumps too)
-        current_milestone = (score // 100) * 100
+        current_milestone = (score // 50) * 50
         if current_milestone > last_difficulty_milestone and score <= 1500:
-            difficulty += 0.025
+            difficulty += 0.075
             speed = -(difficulty*6)
             enemy_spawn_rate = min(
                 enemy_spawn_rate + enemy_spawn_rate_step,
